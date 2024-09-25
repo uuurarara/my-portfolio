@@ -1,0 +1,15 @@
+<!-- templates/yourapp/profile.html -->
+
+<h2>{{ user.username }}のプロフィール</h2>
+
+<h3>友達一覧</h3>
+{% for friend in user.friendships_from.all %}
+  <p>{{ friend.user_to.username }}と友達です。</p>
+{% endfor %}
+
+<h3>受け取った友達リクエスト</h3>
+{% for friend_request in user.friend_requests_received.all %}
+  <p>{{ friend_request.from_user.username }}からのリクエスト</p>
+  <a href="{% url 'accept_friend_request' friend_request.id %}">承認</a>
+  <a href="{% url 'reject_friend_request' friend_request.id %}">拒否</a>
+{% endfor %}

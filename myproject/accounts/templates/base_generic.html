@@ -9,10 +9,10 @@
         <nav>
             <ul>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                    <li><a href="{% url 'logout' %}">ログアウト</a></li>
                 {% else %}
-                    <li><a href="{% url 'login' %}">Login</a></li>
-                    <li><a href="{% url 'signup' %}">Sign Up</a></li>
+                    <li><a href="{% url 'login' %}">ログイン</a></li>
+                    <li><a href="{% url 'signup' %}">新規ユーザー登録</a></li>
                 {% endif %}
             </ul>
         </nav>

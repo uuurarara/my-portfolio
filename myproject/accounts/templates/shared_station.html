@@ -1,0 +1,18 @@
+<!-- templates/yourapp/shared_station.html -->
+<h2>最寄駅情報</h2>
+<p>あなたの最寄駅: {{ user_station }}</p>
+<p>友達の最寄駅: {{ friend_station }}</p>
+
+<h3>中間地点の緯度経度</h3>
+<p>緯度: {{ mid_lat }}</p>
+<p>経度: {{ mid_lng }}</p>
+
+<!-- Google Mapsを使って中間地点を表示 -->
+<iframe
+  width="600"
+  height="450"
+  style="border:0"
+  loading="lazy"
+  allowfullscreen
+  src="https://www.google.com/maps/embed/v1/view?key=YOUR_API_KEY&center={{ mid_lat }},{{ mid_lng }}&zoom=14">
+</iframe>
