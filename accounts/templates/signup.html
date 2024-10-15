@@ -1,0 +1,10 @@
+
+{% block content %}
+  <h2>新規ユーザー登録</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Sign Up</button>
+  </form>
+  <a href="{% url 'home' %}">戻る</a>
+{% endblock %}
