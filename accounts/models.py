@@ -1,11 +1,10 @@
 
 # accounts/models.py
-from django.contrib.auth.models import AbstractUser, AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser, AbstractBaseUser, BaseUserManager,User
 from django.db import models
-from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.conf import settings
+
 
 
 

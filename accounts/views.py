@@ -5,18 +5,14 @@ from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm
-from .models import Friendship, FriendRequest, Profile,CustomUser
-from .forms import ProfileForm
+from .forms import CustomUserCreationForm,ProfileForm,UserSearchForm,UserUpdateForm,ProfileUpdateForm
+from .models import Friendship, FriendRequest, Profile,CustomUser,Notification
 from django.contrib.auth.views import LoginView
-from .forms import UserSearchForm
 from django.contrib import messages
-from .forms import UserUpdateForm,ProfileUpdateForm
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model,update_session_auth_hash
 from django.db.models import Q
-from .models import Notification
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth import update_session_auth_hash
+
 
 
 User = get_user_model()
@@ -175,7 +171,7 @@ def update_nearest_station(request):
             return redirect('profile', user_id=request.user.id)
     else:
         form = ProfileForm(instance=profile)
-    return render(request, 'yourapp/update_nearest_station.html', {'form': form})
+    return render(request, 'accounts/update_nearest_station.html', {'form': form})
 
 # ユーザーと友達の最寄駅を共有し、両者の中間地点を表示するビュー
 @login_required
@@ -192,7 +188,7 @@ def share_nearest_station(request, friend_id):
     # 中間地点を計算
     mid_lat = (user_lat + friend_lat) / 2
     mid_lng = (user_lng + friend_lng) / 2
-    return render(request, 'yourapp/shared_station.html', {
+    return render(request, 'accounts/shared_station.html', {
         'user_station': user_profile.nearest_station_name,
         'friend_station': friend.nearest_station_name,
         'mid_lat': mid_lat,

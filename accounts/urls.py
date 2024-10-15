@@ -22,6 +22,7 @@ urlpatterns = [
     path('profile/<int:user_id>/', views.profile, name='profile'),
     path('base-jeneric/', views.base_generic, name='base_jeneric'), 
     path('', views.home, name='home'),  # ホーム画面のURLを設定
+    
 
     
 ]
