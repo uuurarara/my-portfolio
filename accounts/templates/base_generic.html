@@ -15,7 +15,10 @@
                         <h2>マイページ</h2>
                         <li><a href="{% url 'profile_edit' %}">ユーザー情報を編集する</a></li>
                         <li><a href="{% url 'search_users' %}">友達を追加する</a></li>
-                        <li><a href="{% url 'logout' %}">ログアウト</a></li>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit">ログアウト</button>
+                        </form>
 
                         <h3>受け取った友達リクエスト</h3>
                         {% if friend_requests_received %}
