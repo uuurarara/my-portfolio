@@ -122,7 +122,7 @@ def send_friend_request(request, user_id):
         return redirect('home')
 
     # 友達リクエストを作成
-    FriendRequest.objects.create(from_user=request.user, to_user=to_user)
+    FriendRequest.objects.create(from_user=request.user, to_user=to_user,is_accepted=False)
 
     # 通知を作成
     Notification.objects.create(
