@@ -129,8 +129,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'home','/'
+
+LOGIN_URL = 'login'  # 'login' は accounts/urls.py で定義したURL名
+LOGIN_REDIRECT_URL = 'home'  # ログイン後のリダイレクト先
+LOGOUT_REDIRECT_URL = 'login'  # ログアウト後のリダイレクト先
 
 
 

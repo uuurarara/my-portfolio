@@ -1,6 +1,47 @@
-{% extends "base_generic.html" %}
+<!-- templates/my_page.html -->
+{% extends 'base_generic.html' %}
+
+{% block title %}マイページ{% endblock %}
+
 {% block content %}
-<h2>Welcome to My Site</h2>
+    <h2>通知</h2>
+    <ul>
+        {% for notification in notifications %}
+            <li>{{ notification.message }}</li>
+        {% empty %}
+            <li>新しい通知はありません。</li>
+        {% endfor %}
+    </ul>
 
+    <h2>受け取った友達リクエスト</h2>
+    {% if friend_requests_received %}
+        <ul>
+            {% for friend_request in friend_requests_received %}
+                <li>
+                    {{ friend_request.from_user.username }} からのリクエスト
+                    <form method="post" action="{% url 'accept_friend_request' friend_request.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit">承認</button>
+                    </form>
+                    <form method="post" action="{% url 'reject_friend_request' friend_request.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit">拒否</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>受け取った友達リクエストはありません。</p>
+    {% endif %}
 
+    <h2>友達一覧</h2>
+    {% if user.profile.friends.all %}
+        <ul>
+            {% for friend in user.profile.friends.all %}
+                <li>{{ friend.user.username }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>友達がいません。</p>
+    {% endif %}
 {% endblock %}

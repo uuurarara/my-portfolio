@@ -12,6 +12,8 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model,update_session_auth_hash
 from django.db.models import Q
 from django.contrib.auth.forms import PasswordChangeForm
+from django.db import transaction    
+from django.views.decorators.http import require_POST
 
 
 
@@ -32,13 +34,16 @@ class SignUpView(generic.CreateView):
 def home(request):
     # 受け取った友達リクエスト
     friend_requests_received = request.user.received_requests.filter(is_accepted=False)
+
+    # 未読の通知
+    notifications = request.user.notifications.filter(is_read=False)
     
     context = {
         'friend_requests_received': friend_requests_received,
-        'notifications': request.user.notifications.filter(is_read=False),
+        'notifications': notifications,
     }
     
-    return render(request, 'accounts/base_generic.html', context)
+    return render(request, 'home.html', context)
 
 
 
@@ -134,15 +139,33 @@ def send_friend_request(request, user_id):
 
 # 友達リクエストを承認するビュー
 @login_required
+@require_POST
 def accept_friend_request(request, request_id):
-    friend_request = FriendRequest.objects.get(id=request_id)
-    if friend_request.to_user == request.user:
-        friend_request.to_user.profile.friends.add(friend_request.from_user.profile)
-        friend_request.from_user.profile.friends.add(friend_request.to_user.profile)
-        friend_request.delete()
-        return redirect('profile', user_id=request.user.id)
-    else:
-        return redirect('home')
+    friend_request = get_object_or_404(FriendRequest, id=request_id, to_user=request.user)
+    
+    # 友達リクエストの送信者と受信者のProfileが存在することを確認
+    from_profile = friend_request.from_user.profile
+    to_profile = friend_request.to_user.profile
+    
+    with transaction.atomic():
+        # フレンド関係を追加
+        to_profile.friends.add(from_profile)
+        from_profile.friends.add(to_profile)
+        
+        # FriendRequest を更新
+        friend_request.is_accepted = True
+        friend_request.save()
+
+        # 通知を作成
+        Notification.objects.create(
+            user=friend_request.from_user,
+            message=f"{request.user.username} があなたの友達リクエストを承認しました。"
+        )
+    
+    messages.success(request, "友達リクエストを承認しました。")
+    return redirect('home')
+
+
     
 # 友達リクエストの通知表示ビュー
 @login_required

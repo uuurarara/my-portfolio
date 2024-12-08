@@ -1,5 +1,5 @@
 # accounts/urls.py
-from django.urls import path
+from django.urls import path, include
 from . import views
 from django.contrib.auth.views import LoginView, LogoutView
 from .views import send_friend_request, accept_friend_request, reject_friend_request
@@ -20,8 +20,9 @@ urlpatterns = [
     path('search_users/', views.search_users, name='search_users'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),  
     path('profile/<int:user_id>/', views.profile, name='profile'),
-    path('base-jeneric/', views.base_generic, name='base_jeneric'), 
+    path('base-generic/', views.base_generic, name='base_generic'), 
     path('', views.home, name='home'),  # ホーム画面のURLを設定
+    path('', include('django.contrib.auth.urls')),
     
 
     

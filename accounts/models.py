@@ -45,8 +45,9 @@ class Profile(models.Model):
     
 # 友達リクエストモデル
 class FriendRequest(models.Model):
-    from_user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='from_user', on_delete=models.CASCADE)
-    to_user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='to_user', on_delete=models.CASCADE)
+    from_user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sent_requests', on_delete=models.CASCADE)
+    to_user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='received_requests', on_delete=models.CASCADE)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     is_accepted = models.BooleanField(default=False)  # ここにデフォルト値を追加
     
