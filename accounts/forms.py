@@ -1,8 +1,9 @@
 # accounts/forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import CustomUser, Profile
+from .models import CustomUser, Profile,UserProfile
 from django.contrib.auth.models import User
+from .utils import get_lat_lng
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -46,5 +47,22 @@ class ProfileUpdateForm(forms.ModelForm):
         self.fields['address'].label = '住所'
         self.fields['nearest_station'].label = '最寄駅'
     
+    
+#フォームで駅名入力時に緯度・経度を保存
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['nearest_station']
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        lat, lng = get_lat_lng(instance.nearest_station)
+        instance.station_latitude = lat
+        instance.station_longitude = lng
+        if commit:
+            instance.save()
+        return instance
+
+
     
     

@@ -38,7 +38,11 @@
     {% if user.profile.friends.all %}
         <ul>
             {% for friend in user.profile.friends.all %}
-                <li>{{ friend.user.username }}</li>
+                <li>
+                    {{ friend.user.username }}
+                    <!-- 中間地点を調べるリンク -->
+                    <a href="{% url 'show_midpoint' friend.user.id %}">中間地点を表示</a>
+                </li>
             {% endfor %}
         </ul>
     {% else %}

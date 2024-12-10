@@ -6,7 +6,7 @@ from django.views import generic
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm,ProfileForm,UserSearchForm,UserUpdateForm,ProfileUpdateForm
-from .models import Friendship, FriendRequest, Profile,CustomUser,Notification
+from .models import Friendship, FriendRequest, Profile,CustomUser,Notification,UserProfile
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.contrib.auth import get_user_model,update_session_auth_hash
@@ -14,6 +14,8 @@ from django.db.models import Q
 from django.contrib.auth.forms import PasswordChangeForm
 from django.db import transaction    
 from django.views.decorators.http import require_POST
+from .utils import calculate_midpoint
+from django.http import HttpResponseBadRequest
 
 
 
@@ -218,5 +220,27 @@ def share_nearest_station(request, friend_id):
         'mid_lng': mid_lng,
     })
 
+#中間地点をマップに表示するビューで計算結果をテンプレートに渡す。
+def show_midpoint(request, friend_id):
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    friend_profile = get_object_or_404(UserProfile, user_id=friend_id)
+
+# 緯度・経度が設定されているか確認
+    if None in (user_profile.station_latitude, user_profile.station_longitude,
+                friend_profile.station_latitude, friend_profile.station_longitude):
+        return HttpResponseBadRequest("One or both users do not have valid latitude and longitude.")
+    
+    
+    midpoint_lat, midpoint_lng = calculate_midpoint(
+        user_profile.station_latitude,
+        user_profile.station_longitude,
+        friend_profile.station_latitude,
+        friend_profile.station_longitude
+    )
+
+    return render(request, 'midpoint.html', {
+        'midpoint_lat': midpoint_lat,
+        'midpoint_lng': midpoint_lng
+    })
 
 

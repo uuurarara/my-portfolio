@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    <title>Midpoint</title>
+</head>
+<body>
+    <h1>Midpoint</h1>
+    <div id="map" style="height: 500px;"
+         data-lat="{{ midpoint_lat }}" 
+         data-lng="{{ midpoint_lng }}"></div>
+    <script>
+        function initMap() {
+            const mapElement = document.getElementById('map');
+            const midpoint = {
+                lat: parseFloat(mapElement.dataset.lat),
+                lng: parseFloat(mapElement.dataset.lng)
+            };
+            
+            const map = new google.maps.Map(mapElement, {
+                zoom: 12,
+                center: midpoint
+            });
+
+
+            new google.maps.Marker({
+                position: midpoint,
+                map: map
+            });
+        }
+        initMap();
+    </script>
+</body>
+</html>

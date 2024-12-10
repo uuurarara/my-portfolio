@@ -2,7 +2,7 @@
 from django.urls import path, include
 from . import views
 from django.contrib.auth.views import LoginView, LogoutView
-from .views import send_friend_request, accept_friend_request, reject_friend_request
+from .views import send_friend_request, accept_friend_request, reject_friend_request,show_midpoint
 
 
 
@@ -23,6 +23,7 @@ urlpatterns = [
     path('base-generic/', views.base_generic, name='base_generic'), 
     path('', views.home, name='home'),  # ホーム画面のURLを設定
     path('', include('django.contrib.auth.urls')),
+    path('midpoint/<int:friend_id>/', show_midpoint, name='show_midpoint'),
     
 
     

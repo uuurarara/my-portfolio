@@ -72,3 +72,13 @@ class Notification(models.Model):
 
     def __str__(self):
         return self.message
+    
+    
+
+#UserProfile または Station などのモデルに緯度と経度を保存するフィールドを追加します。
+class UserProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) 
+    nearest_station = models.CharField(max_length=255, blank=True, null=True)
+    station_latitude = models.FloatField(blank=True, null=True)  # 緯度
+    station_longitude = models.FloatField(blank=True, null=True)  # 経度
+    
