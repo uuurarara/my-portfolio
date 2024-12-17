@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    
     <title>Midpoint</title>
 </head>
 <body>
@@ -26,12 +26,13 @@
             });
 
 
-            new google.maps.Marker({
-                position: midpoint,
-                map: map
+            const marker = new google.maps.marker.AdvancedMarkerElement({
+        map: map,
+        position: midpoint
             });
         }
         initMap();
     </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async></script>
 </body>
 </html>
