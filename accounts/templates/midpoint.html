@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>Midpoint</title>
 </head>
 <body>
@@ -25,14 +24,15 @@
                 center: midpoint
             });
 
-
             const marker = new google.maps.marker.AdvancedMarkerElement({
-        map: map,
-        position: midpoint
+                map: map,
+                position: midpoint
             });
         }
-        initMap();
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async></script>
+    <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDj92_8szXIvPxCIlLaxSBzhH1k4MW30Dg&callback=initMap&v=weekly&solution_channel=GMP_CCS_distancematrix_v2"
+    defer
+    ></script>
 </body>
 </html>
