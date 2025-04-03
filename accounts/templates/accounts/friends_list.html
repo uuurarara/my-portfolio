@@ -1,0 +1,12 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<h2>友達一覧</h2>
+<ul>
+    {% for friend in friends %}
+        <li>{{ friend.username }} ({{ friend.email }})</li>
+    {% empty %}
+        <li>友達はいません</li>
+    {% endfor %}
+</ul>
+{% endblock %}

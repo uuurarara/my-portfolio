@@ -35,17 +35,20 @@
     {% endif %}
 
     <h2>友達一覧</h2>
-    {% if user.profile.friends.all %}
+    {% if user.friends_list.all %}
         <ul>
-            {% for friend in user.profile.friends.all %}
-                <li>
-                    {{ friend.user.username }}
-                    <!-- 中間地点を調べるリンク -->
-                    <a href="{% url 'show_midpoint' friend.user.id %}">中間地点を表示</a>
-                </li>
-            {% endfor %}
+            {% for friend in user.friends_list.all %}
+    <li>
+        {{ friend.username }}
+        {% if friend.station_latitude and friend.station_longitude and user.station_latitude and user.station_longitude %}
+            <a href="{% url 'show_midpoint' friend.id %}">中間地点を表示</a>
+        {% else %}
+            <span style="color: red;">※緯度経度が未設定のため表示できません</span>
+        {% endif %}
+    </li>
+{% endfor %}
         </ul>
     {% else %}
         <p>友達がいません。</p>
-    {% endif %}
+    {% endif %}    
 {% endblock %}

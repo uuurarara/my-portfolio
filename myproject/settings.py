@@ -139,5 +139,5 @@ LOGOUT_REDIRECT_URL = 'login'  # ログアウト後のリダイレクト先
 
 
 # 以下は必要に応じて設定してください
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # これはデバッグ用の設定です。実際のメール送信には他の設定が必要です。

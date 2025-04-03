@@ -4,7 +4,7 @@
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Sign Up</button>
+    <button type="submit">登録</button>
   </form>
   <a href="{% url 'home' %}">戻る</a>
 {% endblock %}

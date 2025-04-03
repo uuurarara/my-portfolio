@@ -3,13 +3,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import generic
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm,ProfileForm,UserSearchForm,UserUpdateForm,ProfileUpdateForm
-from .models import Friendship, FriendRequest, Profile,CustomUser,Notification,UserProfile
+from .forms import CustomUserCreationForm, UserSearchForm, UserUpdateForm, UserProfileUpdateForm, NearestStationForm
+from .models import Friendship, FriendRequest, CustomUser, Notification
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
-from django.contrib.auth import get_user_model,update_session_auth_hash
+from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.db.models import Q
 from django.contrib.auth.forms import PasswordChangeForm
 from django.db import transaction    
@@ -17,9 +16,8 @@ from django.views.decorators.http import require_POST
 from .utils import calculate_midpoint
 from django.http import HttpResponseBadRequest
 
-
-
 User = get_user_model()
+
 
 # ログイン用のビュー
 class CustomLoginView(LoginView):
@@ -56,17 +54,14 @@ def base_generic(request):
 #ユーザー編集機能
 @login_required
 def profile_edit(request):
-    if not hasattr(request.user, 'profile'):
-        Profile.objects.create(user=request.user)
-        
     u_form = UserUpdateForm(instance=request.user)
-    p_form = ProfileUpdateForm(instance=request.user.profile)
+    p_form = UserProfileUpdateForm(instance=request.user)
     pw_form = PasswordChangeForm(user=request.user)
         
     if request.method == 'POST':
         if 'update_profile' in request.POST:
             u_form = UserUpdateForm(request.POST, instance=request.user)
-            p_form = ProfileUpdateForm(request.POST, instance=request.user.profile)
+            p_form = UserProfileUpdateForm(request.POST, instance=request.user)
             if u_form.is_valid() and p_form.is_valid():
                 u_form.save()
                 p_form.save()
@@ -78,10 +73,8 @@ def profile_edit(request):
             if pw_form.is_valid():
                 pw_form.save()
                 update_session_auth_hash(request, pw_form.user)
-                context = {
-                    'message': 'パスワードが変更されました',
-                }
-                return render(request, 'accounts/pw.html', context)
+                messages.success(request, 'パスワードが変更されました')
+                return redirect('profile_edit')
             else:
                 messages.error(request, 'パスワードの変更に失敗しました')
 
@@ -144,16 +137,12 @@ def send_friend_request(request, user_id):
 @require_POST
 def accept_friend_request(request, request_id):
     friend_request = get_object_or_404(FriendRequest, id=request_id, to_user=request.user)
-    
-    # 友達リクエストの送信者と受信者のProfileが存在することを確認
-    from_profile = friend_request.from_user.profile
-    to_profile = friend_request.to_user.profile
-    
+
     with transaction.atomic():
-        # フレンド関係を追加
-        to_profile.friends.add(from_profile)
-        from_profile.friends.add(to_profile)
-        
+        # `CustomUser` の `friends` フィールドに友達関係を追加
+        request.user.friends.add(friend_request.from_user)
+        friend_request.from_user.friends.add(request.user)
+
         # FriendRequest を更新
         friend_request.is_accepted = True
         friend_request.save()
@@ -163,9 +152,17 @@ def accept_friend_request(request, request_id):
             user=friend_request.from_user,
             message=f"{request.user.username} があなたの友達リクエストを承認しました。"
         )
-    
+
     messages.success(request, "友達リクエストを承認しました。")
     return redirect('home')
+
+
+@login_required
+def friends_list(request):
+    friends = request.user.friends_list.all()  # `CustomUser` の `friends` フィールドを取得
+    return render(request, 'accounts/friends_list.html', {'friends': friends})
+
+
 
 
     
@@ -185,62 +182,44 @@ def reject_friend_request(request, request_id):
     else:
         return redirect('home')
 
-# ユーザーの最寄駅情報を更新するビュー
-@login_required
-def update_nearest_station(request):
-    profile, created = Profile.objects.get_or_create(user=request.user)
-    if request.method == 'POST':
-        form = ProfileForm(request.POST, instance=profile)
-        if form.is_valid():
-            form.save()
-            return redirect('profile', user_id=request.user.id)
-    else:
-        form = ProfileForm(instance=profile)
-    return render(request, 'accounts/update_nearest_station.html', {'form': form})
-
 # ユーザーと友達の最寄駅を共有し、両者の中間地点を表示するビュー
 @login_required
-def share_nearest_station(request, friend_id):
-    friend = get_object_or_404(Profile, user__id=friend_id)
-    user_profile = get_object_or_404(Profile, user=request.user)
-    # Noneチェックを追加
-    user_lat = user_profile.nearest_station_lat if user_profile.nearest_station_lat is not None else 0.0
-    friend_lat = friend.nearest_station_lat if friend.nearest_station_lat is not None else 0.0
-
-    user_lng = user_profile.nearest_station_lng if user_profile.nearest_station_lng is not None else 0.0
-    friend_lng = friend.nearest_station_lng if friend.nearest_station_lng is not None else 0.0
-
-    # 中間地点を計算
-    mid_lat = (user_lat + friend_lat) / 2
-    mid_lng = (user_lng + friend_lng) / 2
-    return render(request, 'accounts/shared_station.html', {
-        'user_station': user_profile.nearest_station_name,
-        'friend_station': friend.nearest_station_name,
-        'mid_lat': mid_lat,
-        'mid_lng': mid_lng,
-    })
-
-#中間地点をマップに表示するビューで計算結果をテンプレートに渡す。
 def show_midpoint(request, friend_id):
-    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-    friend_profile = get_object_or_404(UserProfile, user_id=friend_id)
+    user = request.user
+    friend = get_object_or_404(CustomUser, id=friend_id)
 
-# 緯度・経度が設定されているか確認
-    if None in (user_profile.station_latitude, user_profile.station_longitude,
-                friend_profile.station_latitude, friend_profile.station_longitude):
+    if None in (user.station_latitude, user.station_longitude, friend.station_latitude, friend.station_longitude):
         return HttpResponseBadRequest("One or both users do not have valid latitude and longitude.")
-    
-    
+
     midpoint_lat, midpoint_lng = calculate_midpoint(
-        user_profile.station_latitude,
-        user_profile.station_longitude,
-        friend_profile.station_latitude,
-        friend_profile.station_longitude
+        user.station_latitude,
+        user.station_longitude,
+        friend.station_latitude,
+        friend.station_longitude
     )
 
     return render(request, 'midpoint.html', {
         'midpoint_lat': midpoint_lat,
-        'midpoint_lng': midpoint_lng
+        'midpoint_lng': midpoint_lng,
+        'user_lat': user.station_latitude,
+        'user_lng': user.station_longitude,
+        'friend_lat': friend.station_latitude,
+        'friend_lng': friend.station_longitude,
+        'user_station_name': user.nearest_station,
+        'friend_station_name': friend.nearest_station,
     })
 
 
+
+@login_required
+def update_nearest_station(request):
+    if request.method == 'POST':
+        form = NearestStationForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "最寄駅の情報が更新されました。")
+            return redirect('profile', user_id=request.user.id)
+    else:
+        form = NearestStationForm(instance=request.user)
+
+    return render(request, 'accounts/update_nearest_station.html', {'form': form})

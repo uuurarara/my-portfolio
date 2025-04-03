@@ -7,32 +7,134 @@
     <title>Midpoint</title>
 </head>
 <body>
-    <h1>Midpoint</h1>
-    <div id="map" style="height: 500px;"
-         data-lat="{{ midpoint_lat }}" 
-         data-lng="{{ midpoint_lng }}"></div>
-    <script>
-        function initMap() {
-            const mapElement = document.getElementById('map');
-            const midpoint = {
-                lat: parseFloat(mapElement.dataset.lat),
-                lng: parseFloat(mapElement.dataset.lng)
-            };
-            
-            const map = new google.maps.Map(mapElement, {
-                zoom: 12,
-                center: midpoint
-            });
+    <h1>中間地点</h1>
+    <div id="map" 
+         style="height: 500px;"
+         data-lat="{{ midpoint_lat }}"
+         data-lng="{{ midpoint_lng }}"
+         data-user-lat="{{ user_lat }}"
+         data-user-lng="{{ user_lng }}"
+         data-friend-lat="{{ friend_lat }}"
+         data-friend-lng="{{ friend_lng }}"
+         data-user-station="{{ user_station_name }}"
+         data-friend-station="{{ friend_station_name }}">
+</div>
 
-            const marker = new google.maps.marker.AdvancedMarkerElement({
+<script>
+    function initMap() {
+        const mapElement = document.getElementById('map');
+        const midpoint = {
+            lat: parseFloat(mapElement.dataset.lat),
+            lng: parseFloat(mapElement.dataset.lng)
+        };
+  
+        const user = {
+            lat: parseFloat(mapElement.dataset.userLat),
+            lng: parseFloat(mapElement.dataset.userLng)
+        };
+  
+        const friend = {
+            lat: parseFloat(mapElement.dataset.friendLat),
+            lng: parseFloat(mapElement.dataset.friendLng)
+        };
+  
+        const map = new google.maps.Map(mapElement, {
+            zoom: 12,
+            center: midpoint
+        });
+  
+        // 🔻 InfoWindowの共通関数
+        function addMarkerWithInfo(position, label, infoText, iconUrl = null) {
+            const markerOptions = {
                 map: map,
-                position: midpoint
+                position: position,
+                title: infoText
+            };
+  
+            if (label) {
+                markerOptions.label = {
+                    text: label,
+                    fontSize: "20px"
+                };
+            }
+  
+            if (iconUrl) {
+                markerOptions.icon = {
+                    url: iconUrl,
+                    labelOrigin: new google.maps.Point(16, 40)
+                };
+            }
+  
+            const marker = new google.maps.Marker(markerOptions);
+  
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<div style="font-size: 14px;">${infoText}</div>`
+            });
+  
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
             });
         }
-    </script>
-    <script
+
+        // DirectionsService & DirectionsRenderer の準備
+const directionsService = new google.maps.DirectionsService();
+const directionsRendererUser = new google.maps.DirectionsRenderer({
+    map: map,
+    suppressMarkers: true, // デフォルトマーカー非表示
+    polylineOptions: { strokeColor: "blue" }
+});
+const directionsRendererFriend = new google.maps.DirectionsRenderer({
+    map: map,
+    suppressMarkers: true,
+    polylineOptions: { strokeColor: "green" }
+});
+
+// ユーザー → 中間地点のルート
+directionsService.route(
+    {
+        origin: user,
+        destination: midpoint,
+        travelMode: google.maps.TravelMode.WALKING // 他に "DRIVING", "TRANSIT" も可
+    },
+    (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+            directionsRendererUser.setDirections(result);
+        } else {
+            console.error("ルート取得エラー（ユーザー）:", status);
+        }
+    }
+);
+
+// 友達 → 中間地点のルート
+directionsService.route(
+    {
+        origin: friend,
+        destination: midpoint,
+        travelMode: google.maps.TravelMode.WALKING
+    },
+    (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+            directionsRendererFriend.setDirections(result);
+        } else {
+            console.error("ルート取得エラー（友達）:", status);
+        }
+    }
+);
+
+  
+        const userStationName = mapElement.dataset.userStation;
+        const friendStationName = mapElement.dataset.friendStation;
+  
+        addMarkerWithInfo(user, "👤", `あなたの最寄駅：${userStationName}`, "http://maps.google.com/mapfiles/ms/icons/blue-dot.png");
+        addMarkerWithInfo(friend, "👥", `友達の最寄駅：${friendStationName}`, "http://maps.google.com/mapfiles/ms/icons/green-dot.png");
+        addMarkerWithInfo(midpoint, "🏁", "中間地点", "http://maps.google.com/mapfiles/ms/icons/red-dot.png");
+    }
+</script> <!-- これは削除してOK -->
+
+<script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDj92_8szXIvPxCIlLaxSBzhH1k4MW30Dg&callback=initMap&v=weekly&solution_channel=GMP_CCS_distancematrix_v2"
     defer
-    ></script>
+></script>
 </body>
 </html>
+<a href="{% url 'home' %}" class="btn btn-secondary mt-3">戻る</a>
